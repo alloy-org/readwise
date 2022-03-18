@@ -13,6 +13,14 @@ const state = {
 };
 
 // --------------------------------------------------------------------------
+const sendMessage = message => {
+  ext.runtime.sendMessage(message).catch(_error => {
+    // On Chrome this can result in a "possible unhandled exception" warning (using a Promise polyfill) because it
+    // raises a "no connection to receiver" error when the popup is closed. We don't care if that's the case
+  });
+};
+
+// --------------------------------------------------------------------------
 const login = async () => {
   state.login = true;
   try {
