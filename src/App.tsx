@@ -6,9 +6,9 @@ import logo from './logo.svg'
 import './App.css'
 
 function App() {
-  const [ ampleAccount, setAmpleAccount ] = useState(AmpleAccount)
-  const [ readwiseAccount, setReadwiseAccount ] = useState(null)
-  const [ tabUrl, setTabUrl ] = useState(null)
+  const [ ampleAccount, setAmpleAccount ] = useState<AmpleAccount | null>(null)
+  const [ readwiseAccount, setReadwiseAccount ] = useState<null>(null)
+  const [ tabUrl, setTabUrl ] = useState<string | null>(null)
 
   useEffect(() => {
     const { ampleAuth } = browser.storage.local.get("ampleAuth")
