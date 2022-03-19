@@ -1,20 +1,15 @@
 import AmplenoteAccount from "./amplenoteAccount"
-import ext from "./ext"
+import browser from "./browser"
 import Environment from "../config/environment"
 
-// --------------------------------------------------------------------------
-// Since this background script performs some long-lived actions, we'd like to
-// be able to reflect the state of the background script in the popup when it
-// opens, even if it was closed after initiating some background script action
 const state = {
-  clipPage: false,
   login: false,
   logout: false,
 };
 
 // --------------------------------------------------------------------------
 const sendMessage = message => {
-  ext.runtime.sendMessage(message).catch(_error => {
+  browser.runtime.sendMessage(message).catch(_error => {
     // On Chrome this can result in a "possible unhandled exception" warning (using a Promise polyfill) because it
     // raises a "no connection to receiver" error when the popup is closed. We don't care if that's the case
   });
@@ -24,7 +19,7 @@ const sendMessage = message => {
 const login = async () => {
   state.login = true;
   try {
-    const redirectURL = await ext.identity.getRedirectURL()
+    const redirectURL = await browser.identity.getRedirectURL()
 
     let authURL = Environment.amplenote.loginURL
     authURL += `?client_id=${ Environment.amplenote.clientID }`
@@ -32,7 +27,7 @@ const login = async () => {
     authURL += `&redirect_uri=${ encodeURIComponent(redirectURL) }`
     authURL += `&scope=${ encodeURIComponent(Environment.amplenote.loginScopes) }`
 
-    const url = await ext.identity.launchWebAuthFlow({ url: authURL, interactive: true })
+    const url = await browser.identity.launchWebAuthFlow({ url: authURL, interactive: true })
     const code = new URL(url).searchParams.get("code")
     return await AmplenoteAccount.fromCode(code, redirectURL)
   } finally {

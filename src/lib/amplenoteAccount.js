@@ -14,7 +14,7 @@ const CURRENT_NOTES_STORAGE_VERSION = "2";
 
 // --------------------------------------------------------------------------
 const STORAGE_KEYS = [
-  "account",
+  "ampleAuth",
   "notes",
   "notesLastModified",
   "notesStorageVersion",
@@ -220,7 +220,7 @@ export default class AmplenoteAccount {
   // --------------------------------------------------------------------------
   async save() {
     await browser.storage.local.set({
-      account: this._data,
+      ampleAuth: this._data,
 
       // Attributes
       notes: this.notes,

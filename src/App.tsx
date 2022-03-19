@@ -1,14 +1,23 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import browser from "./lib/browser"
+import React, { useState, useEffect } from "react"
+import logo from './logo.svg'
+import './App.css'
 
 function App() {
+  const [ ampleAccount, setAmpleAccount ] = useState(null)
+  const [ readwiseAccount, setReadwiseAccount ] = useState(null)
+  const [ tabUrl, setTabUrl ] = useState(null)
+
+  useEffect(() => {
+    const { tags: retrievedTags } = browser.storage.local.get("tags")
+  })
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+    <div className="app">
+      <header className="app-header">
+        <img src={ logo } className="app-logo" alt="logo" />
         <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+          Login to Amplenote
         </p>
         <a
           className="App-link"
