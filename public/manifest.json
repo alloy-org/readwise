@@ -1,19 +1,46 @@
 {
-  "background_color": "#ffffff",
-  "browser_action": {
+  "action": {
     "default_popup": "index.html",
     "default_title": "Sync Readwise to Amplenote"
   },
+  "background": {
+    "persistent": true,
+    "scripts": [ "background/background.js" ]
+  },
+  "background_color": "#ffffff",
+  "commands": {
+    "perform-sync": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "MacCtrl+Shift+L"
+      },
+      "description": "Sync"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+  },
+  "description": "Sync Readwise to Amplenote",
   "display": "standalone",
+  "host_permissions": [
+    "https://api.amplenote.com/*",
+    "http://api.localhost.test:5000/*",
+    "https://readwise.io/*"
+  ],
   "icons": {
     "16": "logo192.png",
     "48": "logo192.png",
     "128": "logo192.png"
   },
-  "manifest_version": 2,
-  "name": "Amplenote Readwise Sync Extension",
+  "manifest_version": 3,
+  "name": "Readwise/Amplenote Sync",
+  "permissions": [
+    "activeTab",
+    "identity",
+    "storage"
+  ],
   "start_url": ".",
   "short_name": "Amplenote Readwise Sync",
   "theme_color": "#000000",
-  "version": "1.0"
+  "version": "0.1",
 }

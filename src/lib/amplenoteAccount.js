@@ -1,9 +1,9 @@
+import browser from "./browser"
 import keyBy from "lodash/keyBy"
 import jwtDecode from "jwt-decode"
 import { fetchJson } from "./fetchJson"
 import { LoggedOutError } from "./errors"
 import Environment from "../config/environment"
-import ext from "./ext"
 
 // --------------------------------------------------------------------------
 // Can be incremented to force a full refresh of the notes list, in cases where
@@ -37,7 +37,7 @@ const reshapeRemoteNote = remoteNote => {
 export default class AmplenoteAccount {
   // --------------------------------------------------------------------------
   static load() {
-    return ext.storage.local.get(STORAGE_KEYS).then(({ account, ...attributes }) => {
+    return browser.storage.local.get(STORAGE_KEYS).then(({ account, ...attributes }) => {
       if (!account || Object.keys(account).length == 0) return null;
 
       const { notesStorageVersion } = attributes;
@@ -168,7 +168,7 @@ export default class AmplenoteAccount {
   // --------------------------------------------------------------------------
   async destroy() {
     await this._logout();
-    await ext.storage.local.remove(STORAGE_KEYS);
+    await browser.storage.local.remove(STORAGE_KEYS);
   }
 
   // --------------------------------------------------------------------------
@@ -219,7 +219,7 @@ export default class AmplenoteAccount {
 
   // --------------------------------------------------------------------------
   async save() {
-    await ext.storage.local.set({
+    await browser.storage.local.set({
       account: this._data,
 
       // Attributes
@@ -303,6 +303,6 @@ export default class AmplenoteAccount {
   // --------------------------------------------------------------------------
   _updateAttributes = async attributes => {
     this._assignAttributes(attributes);
-    await ext.storage.local.set(attributes);
+    await browser.storage.local.set(attributes);
   }
 }
