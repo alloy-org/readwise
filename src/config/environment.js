@@ -6,6 +6,8 @@ const Environment = {
     apiVersion: "v2",
     loginURL: "https://login.amplenote.com/login",
     loginScopes: "notes:create notes:create-content-action notes:create-image notes:list",
+    revokeEndpoint: null,
+    tokenEndpoint: null,
   },
   readwise: {
     accessTokenURL: "https://readwise.io/access_token",

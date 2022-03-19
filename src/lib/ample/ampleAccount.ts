@@ -1,9 +1,9 @@
-import browser from "./browser"
+import browser from "../browser"
 import keyBy from "lodash/keyBy"
 import jwtDecode from "jwt-decode"
-import { fetchJson } from "./fetchJson"
-import { LoggedOutError } from "./errors"
-import Environment from "../config/environment"
+import { fetchJson } from "../fetchJson"
+import { LoggedOutError } from "../errors"
+import Environment from "../../config/environment"
 
 // --------------------------------------------------------------------------
 // Can be incremented to force a full refresh of the notes list, in cases where
@@ -34,7 +34,15 @@ const reshapeRemoteNote = remoteNote => {
 };
 
 // --------------------------------------------------------------------------
-export default class AmplenoteAccount {
+export default class AmpleAccount {
+  readonly notes: any[] | null
+  readonly _data: { accessToken: string, email: string, name: string, accessTokenExpiresAt: Date, refreshToken: string } | null
+  readonly notesLastModified: Date | null
+  readonly notesStorageVersion: string | null
+  readonly selectedMode: string | null
+  readonly selectedNoteUUID: string | null
+  readonly selectedSortOrder: string | null
+
   // --------------------------------------------------------------------------
   static load() {
     return browser.storage.local.get(STORAGE_KEYS).then(({ account, ...attributes }) => {
@@ -45,12 +53,12 @@ export default class AmplenoteAccount {
         attributes.notes = null;
       }
 
-      return new AmplenoteAccount(account, attributes);
+      return new AmpleAccount(account, attributes);
     });
   }
 
   // --------------------------------------------------------------------------
-  static fromCode = async (code, redirectURL) => {
+  static fromCode = async (code: string, redirectURL: string) => {
     const now = Math.round(new Date().getTime() / 1000);
 
     const response = await fetchJson(Environment.amplenote.tokenEndpoint, {
@@ -67,7 +75,7 @@ export default class AmplenoteAccount {
 
     const { email, name, sub: accountUUID } = jwtDecode(result["id_token"]);
 
-    const account = new AmplenoteAccount(
+    const account = new AmpleAccount(
       {
         accessToken: result["access_token"],
         accessTokenExpiresAt: now + parseInt(result["expires_in"], 10),
@@ -91,30 +99,26 @@ export default class AmplenoteAccount {
   };
 
   // --------------------------------------------------------------------------
-  notes = null;
-  notesLastModified = null;
-  notesStorageVersion = null;
-  selectedMode = null;
-  selectedNoteUUID = null;
-  selectedSortOrder = null;
-
-  // --------------------------------------------------------------------------
-  _data = null;
-
-  // --------------------------------------------------------------------------
-  get email() {
-    return this._data.email;
+  get email(): string | undefined {
+    return this._data?.email;
   }
 
   // --------------------------------------------------------------------------
-  get name() {
-    return this._data.name;
+  get name(): string | undefined {
+    return this._data?.name;
   }
 
   // --------------------------------------------------------------------------
-  constructor(accountData, attributes) {
-    this._data = accountData;
-    this._assignAttributes(attributes);
+  constructor(accountData: any, attributes: any) {
+    this._data = accountData
+    this._assignAttributes(attributes)
+
+    this.notes = null
+    this.notesLastModified = null
+    this.notesStorageVersion = null
+    this.selectedMode = null
+    this.selectedNoteUUID = null
+    this.selectedSortOrder = null
   }
 
   // --------------------------------------------------------------------------

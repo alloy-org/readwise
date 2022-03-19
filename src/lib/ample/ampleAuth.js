@@ -1,6 +1,6 @@
-import AmplenoteAccount from "./amplenoteAccount"
-import browser from "./browser"
-import Environment from "../config/environment"
+import AmpleAccount from "./ampleAccount"
+import browser from "../browser"
+import Environment from "../../config/environment"
 
 const state = {
   login: false,
@@ -16,7 +16,7 @@ const sendMessage = message => {
 };
 
 // --------------------------------------------------------------------------
-const login = async () => {
+export const ampleLogin = async () => {
   state.login = true;
   try {
     const redirectURL = await browser.identity.getRedirectURL()
@@ -29,7 +29,7 @@ const login = async () => {
 
     const url = await browser.identity.launchWebAuthFlow({ url: authURL, interactive: true })
     const code = new URL(url).searchParams.get("code")
-    return await AmplenoteAccount.fromCode(code, redirectURL)
+    return await AmpleAccount.fromCode(code, redirectURL)
   } finally {
     state.login = false
     sendMessage({ type: "LOGIN_DONE" })
@@ -37,10 +37,10 @@ const login = async () => {
 };
 
 // --------------------------------------------------------------------------
-const logout = async () => {
+export const ampleLogout = async () => {
   state.logout = true
   try {
-    const account = await AmplenoteAccount.load()
+    const account = await AmpleAccount.load()
     if (!account) return
     await account.destroy()
 
