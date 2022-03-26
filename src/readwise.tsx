@@ -1,7 +1,6 @@
-import { browser, log } from "src/lib"
+import browser from "./lib/browser"
 
 function syncReadwise() {
-  log("Ok, all synced")
   alert("Fake sync complete")
 }
 

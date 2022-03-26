@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------
 const Environment = {
   amplenote: {
-    clientID: __API_CLIENT_ID__,
+    clientID: "ABC123",
     apiHost: "https://api.amplenote.com",
     apiVersion: "v2",
     loginURL: "https://login.amplenote.com/login",
@@ -14,7 +14,7 @@ const Environment = {
   }
 };
 
-if (__DEV__) {
+if (true) {
   Environment.amplenote.apiHost = "http://api.localhost.test:5000";
   Environment.amplenote.loginURL = "http://login.localhost.test:5000/login";
 }

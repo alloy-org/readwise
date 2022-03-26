@@ -23,7 +23,7 @@ const STORAGE_KEYS = [
 ];
 
 // --------------------------------------------------------------------------
-const reshapeRemoteNote = remoteNote => {
+const reshapeRemoteNote = (remoteNote: any) => {
   return {
     name: remoteNote.name,
     tags: remoteNote.tags,
@@ -34,17 +34,9 @@ const reshapeRemoteNote = remoteNote => {
 
 // --------------------------------------------------------------------------
 export default class AmpleAccount {
-  readonly notes: any[] | null
-  readonly _data: { accessToken: string, email: string, name: string, accessTokenExpiresAt: Date, refreshToken: string } | null
-  readonly notesLastModified: Date | null
-  readonly notesStorageVersion: string | null
-  readonly selectedMode: string | null
-  readonly selectedNoteUUID: string | null
-  readonly selectedSortOrder: string | null
-
   // --------------------------------------------------------------------------
   static load() {
-    return browser.storage.local.get(STORAGE_KEYS).then(({ account, ...attributes }) => {
+    return browser.storage.local.get(STORAGE_KEYS).then(({ account, ...attributes }: any) => {
       if (!account || Object.keys(account).length == 0) return null;
 
       const { notesStorageVersion } = attributes;
@@ -57,7 +49,7 @@ export default class AmpleAccount {
   }
 
   // --------------------------------------------------------------------------
-  static fromCode = async (code: string, redirectURL: string) => {
+  static fromCode = async (code, redirectURL) => {
     const now = Math.round(new Date().getTime() / 1000);
 
     const response = await fetchJson(Environment.amplenote.tokenEndpoint, {
@@ -72,7 +64,7 @@ export default class AmpleAccount {
 
     const result = await response.json();
 
-    const { email, name, sub: accountUUID } = jwtDecode(result["id_token"]);
+    const { email, name, sub: accountUUID }: { email: string, name: string, sub: string } = jwtDecode(result["id_token"]);
 
     const account = new AmpleAccount(
       {
@@ -98,17 +90,17 @@ export default class AmpleAccount {
   };
 
   // --------------------------------------------------------------------------
-  get email(): string | undefined {
+  get email() {
     return this._data?.email;
   }
 
   // --------------------------------------------------------------------------
-  get name(): string | undefined {
+  get name() {
     return this._data?.name;
   }
 
   // --------------------------------------------------------------------------
-  constructor(accountData: any, attributes: any) {
+  constructor(accountData, attributes) {
     this._data = accountData
     this._assignAttributes(attributes)
 

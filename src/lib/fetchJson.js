@@ -31,9 +31,6 @@ const xhrFetch = (endpoint, attrs) => {
       init.body = JSON.stringify(init.payload)
     }
   }
-  if (method !== "GET" && method !== "HEAD") {
-    init.headers = { ...init.headers, "X-CSRF-Token": csrfToken() }
-  }
 
   return fetch(endpoint, init)
 };
