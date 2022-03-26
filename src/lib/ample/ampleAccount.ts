@@ -1,9 +1,8 @@
 import browser from "../browser"
 import keyBy from "lodash/keyBy"
 import jwtDecode from "jwt-decode"
-import { fetchJson } from "../fetchJson"
-import { LoggedOutError } from "../errors"
 import Environment from "../../config/environment"
+import { fetchJson } from "../fetchJson"
 
 // --------------------------------------------------------------------------
 // Can be incremented to force a full refresh of the notes list, in cases where
@@ -272,7 +271,7 @@ export default class AmpleAccount {
       const refreshResult = await refreshResponse.json();
       if (refreshResult.error === "invalid_grant") {
         // The refresh token itself is no longer valid (i.e. we've been force-logged-out)
-        throw new LoggedOutError("You've been logged out");
+        alert("You've been logged out");
       }
     }
 
