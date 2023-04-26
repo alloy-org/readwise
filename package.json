@@ -1,50 +1,19 @@
 {
-  "name": "readwise",
-  "version": "0.1.0",
-  "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.16.2",
-    "@testing-library/react": "^12.1.4",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.4.1",
-    "@types/lodash": "^4.14.180",
-    "@types/node": "^16.11.26",
-    "@types/react": "^17.0.40",
-    "@types/react-dom": "^17.0.13",
-    "jwt-decode": "^3.1.2",
-    "lodash": "^4.17.21",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "5.0.0",
-    "typescript": "^4.6.2",
-    "web-vitals": "^2.1.4",
-    "webextension-polyfill": "^0.9.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "INLINE_RUNTIME_CHUNK=false react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dotenv": "^16.0.3",
+    "esbuild": "0.17.15",
+    "isomorphic-fetch": "^3.0.0"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.179"
-  }
+    "@types/jest": "^29.5.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
+  },
+  "main": "lib/index.js",
+  "name": "yappy",
+  "scripts": {
+    "test": "jest"
+  },
+  "type": "module",
+  "version": "0.1.1"
 }

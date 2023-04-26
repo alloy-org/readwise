@@ -1,38 +1,37 @@
-# Amplenote Readwise integration
+# Yappy
 
-This repo will attempt to integrate Amplenote with Readwise.
+Yappy is an [Amplenote plugin](https://www.amplenote.com/help/developing_amplenote_plugins) that implements 
+AI functionality desired by its author. 
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Initially, Yappy was developed only within its note in Amplenote, but there were a few benefits to extracting 
+it to this git repo:
 
-## Available Scripts
+* When its syntax is incorrect, the IDE can highlight specifically *where* it's wrong
+* It can be tested with unit tests
+* It will allow GitClear to track how it evolves over time
+* It can be used as a template for other Amplenote plugins?
 
-In the project directory, you can run:
+So here we are.
 
-### `yarn start`
+## Installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+1. Clone this repo. `git clone git@github.com:alloy-org/yappy.git`
+2. Install node and npm if you haven't already. 
+3. Run `npm install` to install the packages.  
+4. Copy `.env.example` to `.env` and fill in the environment variable for your OpenAI key
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Testing
 
-### `yarn test`
+Run `NODE_OPTIONS=--experimental-vm-modules npm test` to run the tests.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Run tests continuously as modifying the plugin
 
-### `yarn run build`
+```bash
+NODE_OPTIONS=--experimental-vm-modules npm run test -- --watch
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Technologies used to help with this project
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+* https://esbuild.github.io/getting-started/#your-first-bundle
+* https://jestjs.io/
+* https://www.gitclear.com
