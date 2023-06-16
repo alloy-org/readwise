@@ -3,6 +3,13 @@
 Ample-Readwise is [Amplenote plugin](https://www.amplenote.com/help/developing_amplenote_plugins) that implements 
 Readwise-sync functionality desired by its author. 
 
+## What are we working on lately?
+<a href='https://www.gitclear.com' target='_blank'><img src='https://www.gitclear.com/chart_glimpses/1382bfd0-241a-4c7d-b434-4d714e96c89e.png' /></a>
+
+
+## Progress over last three months
+<a href='https://www.gitclear.com' target='_blank'><img src='https://www.gitclear.com/chart_glimpses/af7efead-15cc-46be-bdbb-e2128b61943e.png' /></a>
+
 ## Installation
 
 1. Clone this repo. `git clone git@github.com:alloy-org/readwise.git`
