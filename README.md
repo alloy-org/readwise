@@ -21,6 +21,8 @@ Readwise-sync functionality desired by its author.
 
 Run `NODE_OPTIONS=--experimental-vm-modules npm test` to run the tests.
 
+If it complains about jsdom being absent, run `npm install -D jest-environment-jsdom` and try again.
+
 ### Run tests continuously as modifying the plugin
 
 ```bash
