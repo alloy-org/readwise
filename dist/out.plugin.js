@@ -13,7 +13,7 @@
   };
 
   // ../../../readwise/lib/plugin.js
-  var import_fs = __require("fs");
+
 
   // ../../../readwise/lib/dates.js
   function _yearFromDateString(dateString) {
