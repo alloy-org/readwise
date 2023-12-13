@@ -1,21 +1,11 @@
 (() => {
   var __defProp = Object.defineProperty;
-  var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-    get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-  }) : x)(function(x) {
-    if (typeof require !== "undefined")
-      return require.apply(this, arguments);
-    throw new Error('Dynamic require of "' + x + '" is not supported');
-  });
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
   };
 
-  // ../../../readwise/lib/plugin.js
-
-
-  // ../../../readwise/lib/dates.js
+  // lib/dates.js
   function _yearFromDateString(dateString) {
     const dateObject = _dateObjectFromDateString(dateString);
     if (!dateObject)
@@ -99,7 +89,7 @@
     return result;
   }
 
-  // ../../../readwise/lib/markdown.js
+  // lib/markdown.js
   function _sectionFromHeadingText(headingText, { level = 1 } = {}) {
     return { heading: { text: headingText, level } };
   }
@@ -178,10 +168,20 @@
   }
   function _tableFromMarkdown(content) {
     console.debug(`_tableFromMarkdown(${content})`);
-    let lines = content.split("\n");
+    let tableRegex = /^\s*\|(\s*\*\*[^|]+\*\*\s*\|)+$\n(\s*\|(.*\|)+$)+/gm;
+    let tableMatch = content.match(tableRegex);
+    if (!tableMatch) {
+      console.error(`No table detected in the dashboard library`);
+      throw new Error(`No table detected in the dashboard library`);
+    }
+    let lines = tableMatch[0].split("\n");
     if (lines.length < 2)
       return null;
     lines = lines.filter((row) => row.trim() !== "" && !row.trim().match(/^\s*\|([-\s]+\|\s*)+$/));
+    if (!lines[0]) {
+      console.error(`Dashboard has no meaningful rows: ${lines.join("\n")}`);
+      throw new Error(`Dashboard has no meaningful rows: ${lines.join("\n")}`);
+    }
     let headers;
     try {
       headers = lines[0].split("|").slice(1, -1).map((header) => header.trim().replace(new RegExp("\\*", "g"), ""));
@@ -194,6 +194,12 @@
       const cells = row.split(/(?<!\\)\|/).slice(1, -1).map((cell) => cell.trim());
       const rowObj = {};
       headers.forEach((header, i) => {
+        if (!cells[i]) {
+          console.error(`Couldn't find a book property in the table.
+Analyzing row: ${row}`);
+          throw new Error(`Couldn't find a book property in the table.
+Analyzing row: ${row}`);
+        }
         rowObj[header] = cells[i] || null;
       });
       return rowObj;
@@ -238,7 +244,7 @@
     return tableContent;
   }
 
-  // ../../../readwise/lib/amplenote_rw.js
+  // lib/amplenote_rw.js
   function _sectionContent(noteContent, headingTextOrSectionObject) {
     console.debug(`_sectionContent()`);
     let sectionHeadingText;
@@ -369,7 +375,7 @@ ${oldContent}`;
     }
   }
 
-  // ../../../readwise/lib/data_structures.js
+  // lib/data_structures.js
   function _groupByValue(toGroup, groupFunction) {
     let result = {};
     for (let item of toGroup) {
@@ -418,7 +424,7 @@ ${oldContent}`;
     return toPush;
   }
 
-  // ../../../readwise/lib/dashboard.js
+  // lib/dashboard.js
   async function _writeDashboard(app, noteContents, dashboard, dashboardNote, dashboardConstants) {
     console.debug(`_writeDashboard()`);
     for (let [key, value] of Object.entries(dashboard)) {
@@ -576,7 +582,7 @@ ${dashboardBookListMarkdown}`;
     }
   }
 
-  // ../../../readwise/lib/readwise.js
+  // lib/readwise.js
   var readwise_exports = {};
   __export(readwise_exports, {
     _ensureRequestDelta: () => _ensureRequestDelta,
@@ -773,7 +779,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
     _requestsCount++;
   }
 
-  // ../../../readwise/lib/books.js
+  // lib/books.js
   async function _syncBookHighlights(app, noteContents, forceReprocess, readwiseFetchBooks, constants, dateFormat, bookNote, readwiseBookID, { readwiseBook = null, throwOnFail = false } = {}) {
     console.log(`_syncBookHighlights(app, ${bookNote}, ${readwiseBookID})`);
     let lastUpdatedAt = await _getLastUpdatedTimeFromNote(app, constants, bookNote);
@@ -957,7 +963,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
     return result;
   }
 
-  // ../../../readwise/lib/plugin.js
+  // lib/plugin.js
   var plugin = {
     // TODO: handle abort execution
     // TODO: add conditions to plugin actions
