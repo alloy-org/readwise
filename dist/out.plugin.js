@@ -587,7 +587,7 @@ ${dashboardBookListMarkdown}`;
   __export(readwise_exports, {
     _ensureRequestDelta: () => _ensureRequestDelta,
     _getReadwiseBookCount: () => _getReadwiseBookCount,
-    _readwiseFetchBooks: () => _readwiseFetchBooks2,
+    _readwiseFetchBooks: () => _readwiseFetchBooks,
     _readwiseGetAllHighlightsForBook: () => _readwiseGetAllHighlightsForBook,
     _readwiseMakeRequest: () => _readwiseMakeRequest,
     _readwisePaginateExportRequest: () => _readwisePaginateExportRequest,
@@ -643,7 +643,7 @@ ${dashboardBookListMarkdown}`;
       "highlights": hls
     };
   }
-  async function* _readwiseFetchBooks2(app, constants, { bookIdFilter = null, categoryFilter = null, dateFilter = null } = {}) {
+  async function* _readwiseFetchBooks(app, constants, { bookIdFilter = null, categoryFilter = null, dateFilter = null } = {}) {
     const url = new URL(`${constants.readwiseExportURL}`);
     if (bookIdFilter)
       url.searchParams.append("ids", bookIdFilter);
@@ -780,76 +780,6 @@ Working concurrently while notes are being changed could lead to merge issues, s
   }
 
   // lib/books.js
-  async function _syncBookHighlights(app, noteContents, forceReprocess, readwiseFetchBooks, constants, dateFormat, bookNote, readwiseBookID, { readwiseBook = null, throwOnFail = false } = {}) {
-    console.log(`_syncBookHighlights(app, ${bookNote}, ${readwiseBookID})`);
-    let lastUpdatedAt = await _getLastUpdatedTimeFromNote(app, constants, bookNote);
-    if (forceReprocess) {
-      lastUpdatedAt = null;
-    }
-    const noteContent = await _noteContent(noteContents, bookNote) || "";
-    if (!noteContent.includes("# Summary")) {
-      await _insertContent(noteContents, bookNote, "# Summary\n");
-    }
-    if (!readwiseBook) {
-      let generator = _readwiseFetchBooks(app, constants.readwiseConstants, { bookIdFilter: readwiseBookID });
-      let result = await generator.next();
-      readwiseBook = result.value;
-      if (!readwiseBook) {
-        if (throwOnFail) {
-          throw new Error(`Could not fetch book details for book ID ${readwiseBookID}, you were probably rate-limited by Readwise. Please try again in 30-60 seconds?`);
-        } else {
-          return false;
-        }
-      }
-    }
-    const summaryContent = _bookNotePrefaceContentFromReadwiseBook(app, constants.bookConstants, dateFormat, readwiseBook, bookNote.uuid);
-    await _replaceContent(noteContents, bookNote, "Summary", summaryContent);
-    let highlightsContent = "";
-    if (!noteContent.includes("# Highlights")) {
-      await _insertContent(noteContents, bookNote, "\n# Highlights\n", { atEnd: true });
-    } else {
-      highlightsContent = _sectionContent(noteContent, "Highlights");
-    }
-    let highlights = await _sectionsFromMarkdown(noteContent, "Highlights", _loadHighlights);
-    let bookNoteHighlightList = await _bookHighlightsContentFromReadwiseBook(app, readwiseBook, highlights, lastUpdatedAt);
-    const sortOrder = app.settings[constants.bookConstants.settingSortOrderName] || constants.bookConstants.defaultHighlightSort;
-    let hlGroups = _groupByValue(
-      bookNoteHighlightList,
-      (item) => {
-        if (!item.highlighted_at)
-          return "No higlight date";
-        let year = _yearFromDateString(item.highlighted_at);
-        if (!year)
-          return "No highlight date";
-        return year;
-      }
-    );
-    hlGroups = _distributeIntoSmallGroups(
-      hlGroups,
-      constants.bookConstants.maxBookHighlightsPerSection,
-      constants.bookConstants.maxReplaceContentLength,
-      _trimHighlights,
-      dateFormat
-    );
-    let entries = Object.entries(hlGroups);
-    entries.sort((a, b) => b[0].localeCompare(a[0]));
-    let hlMarkdown = _markdownFromSections(app, entries, _markdownFromHighlights.bind(this));
-    try {
-      await _replaceContent(noteContents, bookNote, "Highlights", hlMarkdown);
-    } catch (error) {
-      console.log("Error replacing", readwiseBook.title, "content, length", hlMarkdown.length, " error", error);
-    }
-    let existingContent = "";
-    if (!noteContent.includes("Sync History")) {
-      await _insertContent(noteContents, bookNote, "\n# Sync History\n", { atEnd: true });
-    } else {
-      const match = noteContent.match(/#\sSync\sHistory\n([\s\S]+)$/m);
-      existingContent = match ? match[1] : "";
-    }
-    await _replaceContent(noteContents, bookNote, "Sync History", `${constants.bookConstants.updateStringPreface}${_localeDateFromIsoDate(/* @__PURE__ */ new Date(), dateFormat)}
-` + existingContent);
-    return true;
-  }
   async function _ensureBookNote(app, constants, readwiseBook) {
     const baseTag = app.settings[constants.settingTagName] || constants.defaultBaseTag;
     console.debug(`_ensureBookNote(${readwiseBook.title})`, baseTag);
@@ -1163,7 +1093,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
               await _flushLocalNotes(app, this._noteContents);
             }
           }
-          const success = await _syncBookHighlights(app, this._noteContents, this._forceReprocess, this.readwiseModule._readwiseFetchBooks, this.constants, dateFormat, bookNote, readwiseBook.id, { readwiseBook });
+          const success = await this._syncBookHighlights(app, bookNote, readwiseBook.id, { readwiseBook });
           if (success)
             bookCount += 1;
         }
@@ -1202,8 +1132,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
           throw new Error("The note title format is incorrect. It should contain an 'ID' designator, like 'ID: #123', in the title");
         }
         const bookId = match[1];
-        const dateFormat = this._dateFormat || app && app.settings[this.constants.settingDateFormat] || "en-US";
-        const success = await _syncBookHighlights(app, this._noteContents, this._forceReprocess, this.readwiseModule._readwiseFetchBooks, this.constants, dateFormat, currentNote, bookId, { throwOnFail: true });
+        const success = await this._syncBookHighlights(app, currentNote, bookId, { throwOnFail: true });
         if (this._useLocalNoteContents) {
           await _flushLocalNotes(app);
         }
@@ -1212,7 +1141,84 @@ Working concurrently while notes are being changed could lead to merge issues, s
         }
       } catch (error) {
         await app.alert(String(error));
+        throw error;
       }
+    },
+    /*******************************************************************************************
+     * Sync highlights for a book into the note provided. This method does all of the propagation from
+     * Readwise Highlight object to list of highlights in a note
+     *
+     * Returns true if successful
+     */
+    async _syncBookHighlights(app, bookNote, readwiseBookID, { readwiseBook = null, throwOnFail = false } = {}) {
+      console.log(`_syncBookHighlights(app, ${bookNote}, ${readwiseBookID})`);
+      const dateFormat = this._dateFormat || app && app.settings[this.constants.settingDateFormat] || "en-US";
+      let lastUpdatedAt = await _getLastUpdatedTimeFromNote(app, this.constants, bookNote);
+      if (this._forceReprocess) {
+        lastUpdatedAt = null;
+      }
+      const noteContent = await _noteContent(this._noteContents, bookNote) || "";
+      if (!noteContent.includes("# Summary")) {
+        await _insertContent(this._noteContents, bookNote, "# Summary\n");
+      }
+      if (!readwiseBook) {
+        let generator = this.readwiseModule._readwiseFetchBooks(app, this.constants.readwiseConstants, { bookIdFilter: readwiseBookID });
+        let result = await generator.next();
+        readwiseBook = result.value;
+        if (!readwiseBook) {
+          if (throwOnFail) {
+            throw new Error(`Could not fetch book details for book ID ${readwiseBookID}, you were probably rate-limited by Readwise. Please try again in 30-60 seconds?`);
+          } else {
+            return false;
+          }
+        }
+      }
+      const summaryContent = _bookNotePrefaceContentFromReadwiseBook(app, this.constants.bookConstants, dateFormat, readwiseBook, bookNote.uuid);
+      await _replaceContent(this._noteContents, bookNote, "Summary", summaryContent);
+      let highlightsContent = "";
+      if (!noteContent.includes("# Highlights")) {
+        await _insertContent(this._noteContents, bookNote, "\n# Highlights\n", { atEnd: true });
+      } else {
+        highlightsContent = _sectionContent(noteContent, "Highlights");
+      }
+      let highlights = await _sectionsFromMarkdown(noteContent, "Highlights", _loadHighlights);
+      let bookNoteHighlightList = await _bookHighlightsContentFromReadwiseBook(app, readwiseBook, highlights, lastUpdatedAt);
+      let hlGroups = _groupByValue(
+        bookNoteHighlightList,
+        (item) => {
+          if (!item.highlighted_at)
+            return "No higlight date";
+          let year = _yearFromDateString(item.highlighted_at);
+          if (!year)
+            return "No highlight date";
+          return year;
+        }
+      );
+      hlGroups = _distributeIntoSmallGroups(
+        hlGroups,
+        this.constants.bookConstants.maxBookHighlightsPerSection,
+        this.constants.bookConstants.maxReplaceContentLength,
+        _trimHighlights,
+        dateFormat
+      );
+      let entries = Object.entries(hlGroups);
+      entries.sort((a, b) => b[0].localeCompare(a[0]));
+      let hlMarkdown = _markdownFromSections(app, entries, _markdownFromHighlights.bind(this));
+      try {
+        await _replaceContent(this._noteContents, bookNote, "Highlights", hlMarkdown);
+      } catch (error) {
+        console.log("Error replacing", readwiseBook.title, "content, length", hlMarkdown.length, " error", error);
+      }
+      let existingContent = "";
+      if (!noteContent.includes("Sync History")) {
+        await _insertContent(this._noteContents, bookNote, "\n# Sync History\n", { atEnd: true });
+      } else {
+        const match = noteContent.match(/#\sSync\sHistory\n([\s\S]+)$/m);
+        existingContent = match ? match[1] : "";
+      }
+      await _replaceContent(this._noteContents, bookNote, "Sync History", `${this.constants.bookConstants.updateStringPreface}${_localeDateFromIsoDate(/* @__PURE__ */ new Date(), dateFormat)}
+` + existingContent);
+      return true;
     },
     /*******************************************************************************************/
     async _syncOnly(app) {
@@ -1224,7 +1230,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
             inputs: [{
               type: "select",
               label: "Category",
-              options: categories.map(function(value, index) {
+              options: categories.map(function(value) {
                 return { value, label: value };
               })
             }]
@@ -1244,12 +1250,9 @@ Working concurrently while notes are being changed could lead to merge issues, s
         this.readwiseModule = readwise_exports;
       this._abortExecution = false;
       this._columnsBeforeUpdateDate = 6;
-      this._columnsBeforeTitle = 1;
       this._dateFormat = null;
       this._forceReprocess = false;
-      this._lastRequestTime = null;
       this._noteContents = {};
-      this._requestsCount = 0;
       this._app = app;
       this._useLocalNoteContents = false;
       if (this._testEnvironment === void 0)
