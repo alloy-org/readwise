@@ -1133,9 +1133,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
         }
         const bookId = match[1];
         const success = await this._syncBookHighlights(app, currentNote, bookId, { throwOnFail: true });
-        if (this._useLocalNoteContents) {
-          await _flushLocalNotes(app);
-        }
+        await _flushLocalNotes(app, this._noteContents);
         if (success) {
           await app.alert("\u2705 Book highlights fetched successfully!");
         }
