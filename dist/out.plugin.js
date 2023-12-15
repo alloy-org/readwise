@@ -194,11 +194,14 @@
       const cells = row.split(/(?<!\\)\|/).slice(1, -1).map((cell) => cell.trim());
       const rowObj = {};
       headers.forEach((header, i) => {
-        if (!cells[i]) {
+        if (cells[i] === "") {
           console.error(`Couldn't find a book property in the table.
 Analyzing row: ${row}`);
           throw new Error(`Couldn't find a book property in the table.
 Analyzing row: ${row}`);
+        }
+        if (cells[i] === void 0) {
+          cells.push(`[No ${header}]`);
         }
         rowObj[header] = cells[i] || null;
       });
@@ -1111,6 +1114,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
         }
       } catch (error) {
         if (this._testEnvironment) {
+          console.log(error);
           throw error;
         } else {
           console.trace();
