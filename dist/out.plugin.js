@@ -142,7 +142,12 @@
   function _markdownFromTableRow(headers, item) {
     let row;
     try {
-      row = headers.map((header) => item[header].replace(/(?<!!\[\\)\|/g, ",") || "");
+      row = headers.map((header) => {
+        let cellContents = "";
+        cellContents = item[header].replace(/(?<!!\[\\)\|/g, ",") || "";
+        cellContents = cellContents.replace(/\n/gm, " ");
+        return cellContents;
+      });
     } catch (err) {
       if (err.name === "TypeError") {
         throw new Error(`${err.message} (line 836)`);
