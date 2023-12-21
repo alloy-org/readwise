@@ -145,7 +145,7 @@
     try {
       row = headers.map((header) => {
         let cellContents = "";
-        cellContents = item[header].replace(/(?<!!\[\\)\|/g, ",") || "";
+        cellContents = item[header].replace(/(?<!!\[.*\\)\|/g, ",") || "";
         cellContents = cellContents.replace(/\n/gm, " ");
         return cellContents;
       });
@@ -211,6 +211,9 @@ Analyzing row: ${row}`);
         }
         rowObj[header] = cells[i] || null;
       });
+      if (rowObj.Cover) {
+        rowObj.Cover = rowObj.Cover.replace(/!\[.+\|200]\(/mg, "![\\|200](");
+      }
       return rowObj;
     });
     return table;
