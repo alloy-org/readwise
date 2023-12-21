@@ -31,6 +31,7 @@
   }
   function _dateObjectFromDateString(dateString) {
     console.log("_dateObjectFromDateString", dateString);
+    let attemptDate = Date.parse(dateString);
     if (!dateString)
       return null;
     let parseableString;
@@ -57,12 +58,12 @@
       console.log("Found empty note parsing for date.");
       return null;
     }
-    const dateLine = lines.find((line) => line.includes(constants.updateStringPreface));
+    const dateLine = lines.find((line) => line.includes(constants.bookConstants.updateStringPreface));
     let result = null;
     if (dateLine) {
       let dateString;
       try {
-        dateString = dateLine.replace(constants.updateStringPreface, "");
+        dateString = dateLine.replace(constants.bookConstants.updateStringPreface, "");
         if (dateString.includes("pm")) {
           const hourMatch = dateString.match(/at\s([\d]{1,2}):/);
           if (hourMatch) {
@@ -857,7 +858,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
       "Author": readwiseBook.author || "[No author]",
       "Category": readwiseBook.category || "[No category]",
       "Source": sourceContent || "[No source]",
-      "Highlights": `[${readwiseBook.num_highlights} highlight${readwiseBook.num_highlights === 1 ? "" : "s"}](https://www.amplenote.com/notes/${bookNoteUUID}#Highlights})`,
+      "Highlights": `[${readwiseBook.num_highlights} highlight${readwiseBook.num_highlights === 1 ? "" : "s"}](https://www.amplenote.com/notes/${bookNoteUUID}#Highlights)`,
       "Updated": `${readwiseBook.last_highlight_at ? _localeDateFromIsoDate(readwiseBook.last_highlight_at, dateFormat) : "No highlights"}`,
       // `/bookreview/[\d]+` is used as a regex to grab Readwise book ID from row
       "Other Details": `[Readwise link](https://readwise.io/bookreview/${readwiseBook.id})`
@@ -1066,10 +1067,10 @@ Working concurrently while notes are being changed could lead to merge issues, s
           await _insertContent(this._noteContents, dashboardNote, `# ${this.constants.dashboardConstants.dashboardBookListTitle}
 `, { atEnd: true });
         }
-        const updateThrough = details.lastUpdated;
+        const updateThrough = details[this.constants.dashDetails.lastUpdated];
         const dateFormat = this._dateFormat || app && app.settings[this.constants.settingDateFormat] || "en-US";
         let dateFilter = null;
-        if (updateThrough) {
+        if (updateThrough && Date.parse(updateThrough)) {
           dateFilter = new Date(Date.parse(updateThrough));
           dateFilter = dateFilter.toISOString().slice(0, -1) + "Z";
           console.log("Looking for results after", updateThrough, "submitting as", dateFilter);
@@ -1179,6 +1180,11 @@ Working concurrently while notes are being changed could lead to merge issues, s
             return false;
           }
         }
+      }
+      let newBookHighlights = readwiseBook.highlights;
+      if (!newBookHighlights) {
+        console.debug(`No new highlights for ${readwiseBook.id}.`);
+        return false;
       }
       const summaryContent = _bookNotePrefaceContentFromReadwiseBook(app, this.constants.bookConstants, dateFormat, readwiseBook, bookNote.uuid);
       await _replaceContent(this._noteContents, bookNote, "Summary", summaryContent);
