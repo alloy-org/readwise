@@ -1080,7 +1080,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
         dashboard = _groupByValue(
           dashboard,
           (item) => {
-            return _sectionNameFromLastHighlight(item.Updates);
+            return _sectionNameFromLastHighlight(item.Updated);
           }
         );
         let readwiseBookCount = await this.readwiseModule._getReadwiseBookCount(app, this.constants.readwiseConstants);
