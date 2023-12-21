@@ -1181,11 +1181,6 @@ Working concurrently while notes are being changed could lead to merge issues, s
           }
         }
       }
-      let newBookHighlights = readwiseBook.highlights;
-      if (!newBookHighlights) {
-        console.debug(`No new highlights for ${readwiseBook.id}.`);
-        return false;
-      }
       const summaryContent = _bookNotePrefaceContentFromReadwiseBook(app, this.constants.bookConstants, dateFormat, readwiseBook, bookNote.uuid);
       await _replaceContent(this._noteContents, bookNote, "Summary", summaryContent);
       let highlightsContent = "";
