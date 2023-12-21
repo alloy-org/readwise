@@ -409,6 +409,14 @@ another empty row`;
       it("should leave the Dashboard intact on a subsequent sync", async () => {
         await expect(plugin._syncAll(app)).resolves.not.toThrow();
         validateDashboard(app, dashboardNote, expectedDashboardContent);
+      });
+
+      it("should not change cover image sizes", async () => {
+        // Emulate what Amplenote does to inline images
+        dashboardNote.body = dashboardNote.body.replace(
+            /\| !\[\\\|200]/mg, "| ![fake_filename.jpg\\|200]");
+        await expect(plugin._syncAll(app)).resolves.not.toThrow();
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
       })
     })
   });
