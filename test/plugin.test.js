@@ -19,10 +19,13 @@ import {createDashboard} from "./mock_note_structure.js";
 export const tableHeaders = ["Cover", "Book Title", "Author", "Category", "Source", "Highlights", "Updated", "Other Details"];
 
 function mockGetBook(readwiseBooks) {
-  async function* readwiseGetBook(app, constants, {categoryFilter=null} = {}) {
+  async function* readwiseGetBook(app, constants, {categoryFilter=null, dateFilter=null} = {}) {
     for (const book of readwiseBooks) {
       if (categoryFilter) {
         if (book.category !== categoryFilter) continue;
+      }
+      if (dateFilter) {
+        if (book.last_highlight_at < dateFilter) continue;
       }
       yield ({...book})
     }
@@ -125,6 +128,41 @@ describe("plugin1", () => {
         expect(app._noteRegistry["2"].body).toContain(expectedBookNoteContent);
       });
     });
+
+    describe("with an already populated book note", () => {
+      let dateToInsert = _localeDateFromIsoDate(new Date(), dateFormat);
+      let expectedDashboardContent = createDashboard(dateToInsert, dateToInsert, dateToInsert,
+            1, 1, [
+              {
+                year: "2012",
+                rows: [
+                  {"id": "2", book: readwiseBook1}
+                ]
+              }
+            ]
+      );
+      beforeEach(() => {
+        dashboardNote = mockNote(expectedDashboardContent, plugin.constants.dashboardConstants.defaultDashboardNoteTitle,
+            dashboardNoteUUID, ["library"]);
+        let bookNote = mockNote(
+            `${expectedBookNoteContent}\n${plugin.constants.bookConstants.updateStringPreface}${_localeDateFromIsoDate(new Date(), dateFormat)}`,
+      `${readwiseBook1.title} by ${readwiseBook1.author} (ID#${readwiseBook1.id})`,
+            "2", ["library/books"]
+        );
+        app = mockApp(dashboardNote);
+        app._noteRegistry["2"] = bookNote;
+        plugin._app = app;
+      });
+
+      // ------------------------------------------------------------------------------------------
+      it("should not update the book note once more", async () => {
+        // Perform a superfluous sync with no new HLs to make sure note contents were not changed
+        let lastUpdated = new Date(app._noteRegistry["2"].lastUpdated);
+        await expect(plugin._syncAll(app)).resolves.not.toThrow();
+        expect(app._noteRegistry["2"].lastUpdated).toEqual(lastUpdated);
+      });
+    });
+
     describe("with a populated dashboard that has fewer columns than expected", () => {
       let expectedDashboardContent = createDashboard("none", "none", "none",
       1, 1, [
