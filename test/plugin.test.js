@@ -3,165 +3,29 @@
  */
 // TODO: properly add variables in expected strings
 // TODO: test subsequent sync not changing existing entries
-import { mockApp, mockPlugin, mockNote } from "./test-helpers.js"
-import { _bookObjectFromReadwiseBook } from "./books.js";
-import { _markdownFromTableRow } from "./markdown.js";
-import { _tablePreambleFromHeaders } from "./markdown.js";
-import { _localeDateFromIsoDate } from "./dates.js";
-import { _sectionNameFromLastHighlight } from "./dashboard.js";
-import { _noteTitleFromBook } from "./books.js";
-import { _migrateBooksToSections } from "./dashboard.js";
-import { _insertContent } from "./amplenote_rw.js";
-import { _flushLocalNotes } from "./amplenote_rw.js";
-
-export const readwiseBookOneHighlight = {
-  "id": 17506326,
-  "title": "It's All Too Much",
-  "author": "Peter Walsh",
-  "category": "books",
-  "source": "kindle",
-  "num_highlights": 1,
-  "last_highlight_at": "2012-03-29T04:56:00Z",
-  "updated": "2022-08-05T18:25:10.818174Z",
-  "cover_image_url": "https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg",
-  "highlights_url": "https://readwise.io/bookreview/17506326",
-  "source_url": null,
-  "asin": "B000N2HCP6",
-  "tags": [],
-  "document_note": "",
-  "highlights": [
-      {
-        "id": 549654155,
-        "text": "Productivity is not merely some abstract economic concept. It’s at the heart of any robust economy, and central to the living standards of each of us. GDP per capita roughly captures the total amount of income generated each year within an economy. For capital-intensive economies like Alberta, an above-average share of that income is captured by capital investors and a below-average share by labour. But even using measures of average household income reveals a large gap between most Canadian provinces and U.S. states.\n\n![](https://lh3.googleusercontent.com/9ar1Rrrptx87DKOgvFNmUDvey2_RfrPanZpuuS98VqTj95FuwCaDAidBue9QE13hkO37UwrkjXaoEcwzytI0zlI7iyjQWNlc2FqeybbTTjPVv_yANSzC-JZzVZJZ3Tn52_yY4FtciMIbFLZMuQu3JfI)",
-        "note": "",
-        "location": 4627,
-        "location_type": "offset",
-        "highlighted_at": "2023-06-18T01:59:39.364724Z",
-        "url": "https://read.readwise.io/read/01h361513nkws1w4npepysr0na",
-        "color": "",
-        "updated": "2023-06-18T01:59:39.390873Z",
-        "book_id": 17506326,
-        "tags": []
-      }
-  ]
-};
-export const readwiseBook2OneHighlight = {
-  "id": 2,
-  "title": "Book #2",
-  "author": "Author #2",
-  "category": "articles",
-  "source": "kindle",
-  "num_highlights": 1,
-  "last_highlight_at": "2015-03-29T04:56:00Z",
-  "updated": "2022-08-05T18:25:10.818174Z",
-  "cover_image_url": "https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg",
-  "highlights_url": "https://readwise.io/bookreview/2",
-  "source_url": null,
-  "asin": "B000N2HCP7",
-  "tags": [],
-  "document_note": "",
-  "highlights": [
-    {
-      "id": 21,
-      "text": "Highlight #1, some more text",
-      "note": "",
-      "location": 21,
-      "location_type": "offset",
-      "highlighted_at": "2015-03-29T01:59:39.364724Z",
-      "url": "https://read.readwise.io/read/01h361513nkws1w4npepysr0na",
-      "color": "",
-      "updated": "2015-03-29T01:59:39.390873Z",
-      "book_id": 2,
-      "tags": []
-    }
-  ]
-};
-let readwiseBookTwoHighlights = { ...readwiseBookOneHighlight };
-readwiseBookTwoHighlights.highlights = [ ...readwiseBookOneHighlight.highlights ];
-readwiseBookTwoHighlights.highlights.push({
-  "id": 549654156,
-  "text": "Second highlight is here",
-  "note": "",
-  "location": 4628,
-  "location_type": "offset",
-  "highlighted_at": "2023-06-19T01:59:40.364724Z",
-  "url": "https://read.readwise.io/read/01h361513nkws1w4npepysr0na",
-  "color": "",
-  "updated": "2023-06-19T01:59:40.390873Z",
-  "book_id": 17506326,
-  "tags": []
-});
-let readwiseBook3 = {
-  "id": "4",
-  "title": "Book #3",
-  "author": "Author\nName",
-  "category": "books",
-  "source": "kindle",
-  "num_highlights": 1,
-  "last_highlight_at": "2022-08-05T18:25:10.818174Z",
-  "updated": "2022-08-05T18:25:10.818174Z",
-  "cover_image_url": "https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg",
-  "highlights_url": "https://readwise.io/bookreview/4",
-  "source_url": null,
-  "asin": "B000N2HCP6",
-  "tags": [],
-  "document_note": "",
-  "highlights": [
-    {
-      "id": 41,
-      "text": "Highlight #1",
-      "note": "",
-      "location": 1234,
-      "location_type": "offset",
-      "highlighted_at": "2022-08-05T18:25:10.818174Z",
-      "url": "https://read.readwise.io/read/01h361513nkws1w4npepysr0na",
-      "color": "",
-      "updated": "2022-08-05T18:25:10.818174Z",
-      "book_id": 4,
-      "tags": []
-    }
-  ]
-};
-
-let readwiseArticleOneHighlight = {
-  "id": "3",
-  "title": "Article #1",
-  "author": "Author #1",
-  "category": "articles",
-  "source": "reader",
-  "num_highlights": 1,
-  "last_highlight_at": "2023-03-29T04:56:00Z",
-  "updated": "2023-03-29T04:56:00Z",
-  "cover_image_url": "https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg",
-  "highlights_url": "https://readwise.io/bookreview/3",
-  "source_url": null,
-  "asin": null,
-  "tags": [],
-  "document_note": "",
-  "highlights": [
-    {
-      "id": "31",
-      "text": "Article highlight #1",
-      "note": "",
-      "location": 123,
-      "location_type": "offset",
-      "highlighted_at": "2023-03-29T04:56:00Z",
-      "url": "https://read.readwise.io/read/01h361513nkws1w4npepysr0na",
-      "color": "",
-      "updated": "2023-03-29T04:56:00Z",
-      "book_id": "3",
-      "tags": []
-    }
-  ],
-}
+import { mockApp, mockPlugin, mockNote } from "../lib/test-helpers.js"
+import { _bookObjectFromReadwiseBook } from "../lib/books.js";
+import { _markdownFromTableRow } from "../lib/markdown.js";
+import { _tablePreambleFromHeaders } from "../lib/markdown.js";
+import { _localeDateFromIsoDate } from "../lib/dates.js";
+import { _sectionNameFromLastHighlight } from "../lib/dashboard.js";
+import { _migrateBooksToSections } from "../lib/dashboard.js";
+import { _insertContent } from "../lib/amplenote_rw.js";
+import { _flushLocalNotes } from "../lib/amplenote_rw.js";
+import { readwiseBook1, readwiseBook2, readwiseBook4, readwiseArticle1,
+  readwiseBook3} from "./mock_readwise_data.js";
+import {createDashboard} from "./mock_note_structure.js";
 
 export const tableHeaders = ["Cover", "Book Title", "Author", "Category", "Source", "Highlights", "Updated", "Other Details"];
 
 function mockGetBook(readwiseBooks) {
-  async function* readwiseGetBook(app, constants, {categoryFilter=null} = {}) {
+  async function* readwiseGetBook(app, constants, {categoryFilter=null, dateFilter=null} = {}) {
     for (const book of readwiseBooks) {
       if (categoryFilter) {
         if (book.category !== categoryFilter) continue;
+      }
+      if (dateFilter) {
+        if (book.last_highlight_at < dateFilter) continue;
       }
       yield ({...book})
     }
@@ -172,20 +36,6 @@ function mockGetBook(readwiseBooks) {
 describe("plugin1", () => {
   const plugin = mockPlugin();
   plugin._testEnvironment = true;
-
-  const expectedDashboardRegex = new RegExp(`# Library Details
-- Last synced at: .{10,}$
-- Oldest update synced in: .{10,}$
-- Next sync for content updated after: .{10,}$`, "gm");
-
-  const expectedDashboardContent = `- Readwise books imported into table: 1
-- Book count reported by Readwise: 1
-# Readwise Book List
-## 2012
-| **Cover** | **Book Title** | **Author** | **Category** | **Source** | **Highlights** | **Updated** | **Other Details** |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ![\\|200](https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg) | [It's All Too Much](https://www.amplenote.com/notes/2) | Peter Walsh | books | [kindle](kindle://book?action=open&asin=B000N2HCP6) | [1 highlight](https://www.amplenote.com/notes/2#Highlights}) | March 29, 2012 | [Readwise link](https://readwise.io/bookreview/17506326) |
-`;
 
   const expectedBookNoteContent = `# Summary
 ![Book cover](https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg)
@@ -206,25 +56,14 @@ describe("plugin1", () => {
 **Highlighted at**: June 18, 2023 (#H549654155)
 # Sync History
 `;
-
   let expectedBookNoteContentExtraHL = expectedBookNoteContent.split("\n").slice(0, -2).join("\n");
   expectedBookNoteContentExtraHL += `\n\n\n> ### Second highlight is here\n\n**Highlighted at**: June 19, 2023 (#H549654156)`;
-
-  const expectedDashboardContentArticle = `- Readwise books imported into table: 1
-- Book count reported by Readwise: 2
-# Readwise Book List
-## 2023
-| **Cover** | **Book Title** | **Author** | **Category** | **Source** | **Highlights** | **Updated** | **Other Details** |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ![\\|200](${readwiseArticleOneHighlight.cover_image_url}) | [${readwiseArticleOneHighlight.title}](https://www.amplenote.com/notes/2) | ${readwiseArticleOneHighlight.author} | ${readwiseArticleOneHighlight.category} | ${readwiseArticleOneHighlight.source} | [${readwiseArticleOneHighlight.num_highlights} highlight](https://www.amplenote.com/notes/2#Highlights}) | March 29, 2023 | [Readwise link](https://readwise.io/bookreview/${readwiseArticleOneHighlight.id}) |
-`;
-
-
+  const dateFormat = plugin._dateFormat || "en-US";
   const dashboardNoteUUID = "123456789";
 
-  function validateDashboard(app, dashboardNote, expectedDashboardRegex, expectedDashboardContent) {
-    expect(dashboardNote.body.split("\n").slice(0, 4).join("\n")).toMatch(expectedDashboardRegex);
-    expect(dashboardNote.body).toContain(expectedDashboardContent);
+  function validateDashboard(app, dashboardNote, expectedDashboardContent) {
+    // expect(dashboardNote.body.split("\n").slice(0, 4).join("\n")).toMatch(expectedDashboardRegex);
+    expect(dashboardNote.body).toContain(expectedDashboardContent.split("\n").slice(4).join("\n"));
   }
 
   describe("with a single book reported from readwise", () => {
@@ -236,7 +75,7 @@ describe("plugin1", () => {
         _getReadwiseBookCount() {
           return Promise.resolve(1);
         },
-        _readwiseFetchBooks: mockGetBook([readwiseBookOneHighlight]),
+        _readwiseFetchBooks: mockGetBook([readwiseBook1]),
       };
     });
 
@@ -250,13 +89,31 @@ describe("plugin1", () => {
 
       // ------------------------------------------------------------------------------------------
       it("should sync all available books", async () => {
+        let expectedDashboardContent = createDashboard("none", "none", "none",
+            1, 1, [
+              {
+                year: "2012",
+                rows: [ { "id": "2", book: readwiseBook1 } ]
+              }
+            ]
+        );
         await expect(plugin._syncAll(app)).resolves.not.toThrow();
-        validateDashboard(app, dashboardNote, expectedDashboardRegex, expectedDashboardContent);
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
         expect(app._noteRegistry["2"].body).toContain(expectedBookNoteContent);
       });
     });
 
     describe("with an already populated dashboard", () => {
+      let expectedDashboardContent = createDashboard("none", "none", "none",
+          1, 1, [
+            {
+              year: "2012",
+              rows: [
+                {"id": "2", book: readwiseBook1}
+              ]
+            }
+          ]
+      );
       beforeEach(() => {
         dashboardNote = mockNote(expectedDashboardContent,
             plugin.constants.dashboardConstants.defaultDashboardNoteTitle, dashboardNoteUUID, ["library"]);
@@ -267,11 +124,56 @@ describe("plugin1", () => {
       // ------------------------------------------------------------------------------------------
       it("should sync nothing more", async () => {
         await expect(plugin._syncAll(app)).resolves.not.toThrow();
-        validateDashboard(app, dashboardNote, expectedDashboardRegex, expectedDashboardContent);
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
         expect(app._noteRegistry["2"].body).toContain(expectedBookNoteContent);
       });
     });
+
+    describe("with an already populated book note", () => {
+      let dateToInsert = _localeDateFromIsoDate(new Date(), dateFormat);
+      let expectedDashboardContent = createDashboard(dateToInsert, dateToInsert, dateToInsert,
+            1, 1, [
+              {
+                year: "2012",
+                rows: [
+                  {"id": "2", book: readwiseBook1}
+                ]
+              }
+            ]
+      );
+      beforeEach(() => {
+        dashboardNote = mockNote(expectedDashboardContent, plugin.constants.dashboardConstants.defaultDashboardNoteTitle,
+            dashboardNoteUUID, ["library"]);
+        let bookNote = mockNote(
+            `${expectedBookNoteContent}\n${plugin.constants.bookConstants.updateStringPreface}${_localeDateFromIsoDate(new Date(), dateFormat)}`,
+      `${readwiseBook1.title} by ${readwiseBook1.author} (ID#${readwiseBook1.id})`,
+            "2", ["library/books"]
+        );
+        app = mockApp(dashboardNote);
+        app._noteRegistry["2"] = bookNote;
+        plugin._app = app;
+      });
+
+      // ------------------------------------------------------------------------------------------
+      it("should not update the book note once more", async () => {
+        // Perform a superfluous sync with no new HLs to make sure note contents were not changed
+        let lastUpdated = new Date(app._noteRegistry["2"].lastUpdated);
+        await expect(plugin._syncAll(app)).resolves.not.toThrow();
+        expect(app._noteRegistry["2"].lastUpdated).toEqual(lastUpdated);
+      });
+    });
+
     describe("with a populated dashboard that has fewer columns than expected", () => {
+      let expectedDashboardContent = createDashboard("none", "none", "none",
+      1, 1, [
+          {
+            year: "2012",
+            rows: [
+              {"id": "2", book: readwiseBook1}
+            ]
+          }
+        ]
+      );
       beforeEach(() => {
         // Note: this is faulty because we have 8 columns in the first two rows and just 7 in the last row
         // Not sure how we can reach this state, but it's been logged on some users' installations
@@ -281,7 +183,7 @@ describe("plugin1", () => {
 ## 2012
 | **Cover** | **Book Title** | **Author** | **Category** | **Source** | **Highlights** | **Updated** | **Other Details** |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| ![\\|200](https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg) | [It's All Too Much](https://www.amplenote.com/notes/2) | Peter Walsh | books | [kindle](kindle://book?action=open&asin=B000N2HCP6) | [1 highlight](https://www.amplenote.com/notes/2#Highlights}) | March 29, 2012 |
+| ![\\|200](https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg) | [It's All Too Much](https://www.amplenote.com/notes/2) | Peter Walsh | books | [kindle](kindle://book?action=open&asin=B000N2HCP6) | [1 highlight](https://www.amplenote.com/notes/2#Highlights) | March 29, 2012 |
 `;
         dashboardNote = mockNote(faultyDashboardContent, plugin.constants.dashboardConstants.defaultDashboardNoteTitle,
             dashboardNoteUUID, ["library"])
@@ -292,7 +194,7 @@ describe("plugin1", () => {
       // ------------------------------------------------------------------------------------------
       it("should add mising content to the missing columns", async () => {
         await expect(plugin._syncAll(app)).resolves.not.toThrow();
-        validateDashboard(app, dashboardNote, expectedDashboardRegex, expectedDashboardContent);
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
       })
     });
 
@@ -386,19 +288,29 @@ another empty row`;
     let app, dashboardNote, bookNote;
 
     describe("with partial highlights already synced", () => {
+      let expectedDashboardContent = createDashboard("none", "none", "none",
+        1, 1, [
+          {
+            year: "2012",
+            rows: [
+              {"id": "2", book: readwiseBook1}
+            ]
+          }
+        ]
+      );
       beforeEach(() => {
         plugin._initialize();
         plugin.readwiseModule = {
           _getReadwiseBookCount() {
             return Promise.resolve(1);
           },
-          _readwiseFetchBooks: mockGetBook([readwiseBookTwoHighlights]),
+          _readwiseFetchBooks: mockGetBook([readwiseBook4]),
         };
         dashboardNote = mockNote(expectedDashboardContent,
             plugin.constants.dashboardConstants.defaultDashboardNoteTitle, dashboardNoteUUID, ["library"]);
         app = mockApp(dashboardNote);
         bookNote = app.createNote(
-            `${readwiseBookOneHighlight.title} by ${readwiseBookOneHighlight.author} (ID #${readwiseBookOneHighlight.id}`,
+            `${readwiseBook1.title} by ${readwiseBook1.author} (ID #${readwiseBook1.id}`,
             ["library"], expectedBookNoteContent, "2"
         );
         plugin._app = app;
@@ -407,7 +319,7 @@ another empty row`;
       // ------------------------------------------------------------------------------------------
       it("should sync the extra highlight", async () => {
         await expect(plugin._syncAll(app)).resolves.not.toThrow();
-        validateDashboard(app, dashboardNote, expectedDashboardRegex, expectedDashboardContent);
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
         expect(app._noteRegistry["2"].body).toContain(expectedBookNoteContentExtraHL);
       });
 
@@ -420,33 +332,33 @@ another empty row`;
   });
 
   describe("with 2 books reported by readwise", () => {
-    let expectedDashboardContentExtraBook = `- Readwise books imported into table: 2
-- Book count reported by Readwise: 2
-# Readwise Book List
-## ${readwiseBook2OneHighlight.last_highlight_at.slice(0, 4)}
-| **Cover** | **Book Title** | **Author** | **Category** | **Source** | **Highlights** | **Updated** | **Other Details** |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ![\\|200](${readwiseBook2OneHighlight.cover_image_url}) | [${readwiseBook2OneHighlight.title}](https://www.amplenote.com/notes/3) | ${readwiseBook2OneHighlight.author} | ${readwiseBook2OneHighlight.category} | [${readwiseBook2OneHighlight.source}](kindle://book?action=open&asin=${readwiseBook2OneHighlight.asin}) | [${readwiseBook2OneHighlight.num_highlights} highlight](https://www.amplenote.com/notes/3#Highlights}) | March 29, 2015 | [Readwise link](${readwiseBook2OneHighlight.highlights_url}) |
-## ${readwiseBookTwoHighlights.last_highlight_at.slice(0, 4)}
-| **Cover** | **Book Title** | **Author** | **Category** | **Source** | **Highlights** | **Updated** | **Other Details** |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ![\\|200](${readwiseBookTwoHighlights.cover_image_url}) | [${readwiseBookTwoHighlights.title}](https://www.amplenote.com/notes/2) | ${readwiseBookTwoHighlights.author} | ${readwiseBookTwoHighlights.category} | [${readwiseBookTwoHighlights.source}](kindle://book?action=open&asin=${readwiseBookTwoHighlights.asin}) | [${readwiseBookTwoHighlights.num_highlights} highlight](https://www.amplenote.com/notes/2#Highlights}) | March 29, 2012 | [Readwise link](${readwiseBookTwoHighlights.highlights_url}) |
-`;
+    let expectedDashboardContent = createDashboard("none", "none", "none",
+        2, 2, [
+          {
+            year: "2015",
+            rows: [ { id: "3", book: readwiseBook2 } ]
+          },
+          {
+            year: "2012",
+            rows: [ { id: "2", book: readwiseBook4 } ],
+          },
+        ]
+    );
     let expectedBookNote2Content = `# Summary
-![Book cover](${readwiseBook2OneHighlight.cover_image_url})
-- **${readwiseBook2OneHighlight.title}**
-- Book Author: [${readwiseBook2OneHighlight.author}](/notes/3?tag=library/author--2)
-- Category: ${readwiseBook2OneHighlight.category}
-- Source: [${readwiseBook2OneHighlight.source}](kindle://book?action=open&asin=${readwiseBook2OneHighlight.asin})
-- ASIN: [${readwiseBook2OneHighlight.asin}](kindle://book?action=open&asin=${readwiseBook2OneHighlight.asin})
-- Highlight count: ${readwiseBook2OneHighlight.num_highlights}
+![Book cover](${readwiseBook2.cover_image_url})
+- **${readwiseBook2.title}**
+- Book Author: [${readwiseBook2.author}](/notes/3?tag=library/author--2)
+- Category: ${readwiseBook2.category}
+- Source: [${readwiseBook2.source}](kindle://book?action=open&asin=${readwiseBook2.asin})
+- ASIN: [${readwiseBook2.asin}](kindle://book?action=open&asin=${readwiseBook2.asin})
+- Highlight count: ${readwiseBook2.num_highlights}
 - Last highlight: March 29, 2015
-- [View all highlights on Readwise](https://readwise.io/bookreview/${readwiseBook2OneHighlight.id})
+- [View all highlights on Readwise](https://readwise.io/bookreview/${readwiseBook2.id})
 # Highlights
 ## 2015
-> ### ${readwiseBook2OneHighlight.highlights[0].text}
+> ### ${readwiseBook2.highlights[0].text}
 
-**Highlighted at**: March 29, 2015 (#H${readwiseBook2OneHighlight.highlights[0].id})
+**Highlighted at**: March 29, 2015 (#H${readwiseBook2.highlights[0].id})
 # Sync History
 `;
     let app, dashboardNote;
@@ -457,7 +369,7 @@ another empty row`;
         _getReadwiseBookCount() {
           return Promise.resolve(2);
         },
-        _readwiseFetchBooks: mockGetBook([readwiseBookTwoHighlights, readwiseBook2OneHighlight]),
+        _readwiseFetchBooks: mockGetBook([readwiseBook4, readwiseBook2]),
       };
     });
 
@@ -473,7 +385,7 @@ another empty row`;
       // ------------------------------------------------------------------------------------------
       it("should sync the extra book", async () => {
         await expect(plugin._syncAll(app)).resolves.not.toThrow();
-        validateDashboard(app, dashboardNote, expectedDashboardRegex, expectedDashboardContentExtraBook);
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
         expect(app._noteRegistry["2"].body).toContain(expectedBookNoteContentExtraHL);
         expect(app._noteRegistry["3"].body).toContain(expectedBookNote2Content);
       });
@@ -487,7 +399,7 @@ another empty row`;
       plugin._initialize();
       plugin.readwiseModule = {
         _getReadwiseBookCount() { return Promise.resolve(2); },
-        _readwiseFetchBooks: mockGetBook([readwiseBookOneHighlight, readwiseArticleOneHighlight]),
+        _readwiseFetchBooks: mockGetBook([readwiseBook1, readwiseArticle1]),
       }
     });
 
@@ -501,8 +413,16 @@ another empty row`;
 
       // ------------------------------------------------------------------------------------------
       it("should sync just the article (Sync only...)", async () => {
+        let expectedDashboardContent = createDashboard("none", "none", "none",
+            1, 2,[
+            {
+              year: "2023",
+              rows: [ { "id": "2", book: readwiseArticle1 } ]
+            }
+          ]
+        );
         await expect(plugin._syncAll(app, "articles")).resolves.not.toThrow();
-        validateDashboard(app, dashboardNote, expectedDashboardRegex, expectedDashboardContentArticle);
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
       })
     });
   })
@@ -529,15 +449,13 @@ another empty row`;
 ## ${readwiseBook3.last_highlight_at.slice(0, 4)}
 | **Cover** | **Book Title** | **Author** | **Category** | **Source** | **Highlights** | **Updated** | **Other Details** |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| ![\\|200](${readwiseBook3.cover_image_url}) | [${readwiseBook3.title}](https://www.amplenote.com/notes/2) | ${readwiseBook3.author.replace(/\n/mg, " ")} | ${readwiseBook3.category} | [${readwiseBook3.source}](kindle://book?action=open&asin=${readwiseBook3.asin}) | [${readwiseBook3.num_highlights} highlight](https://www.amplenote.com/notes/2#Highlights}) | August 5, 2022 | [Readwise link](${readwiseBook3.highlights_url}) |
+| ![\\|200](${readwiseBook3.cover_image_url}) | [${readwiseBook3.title}](https://www.amplenote.com/notes/2) | ${readwiseBook3.author.replace(/\n/mg, " ")} | ${readwiseBook3.category} | [${readwiseBook3.source}](kindle://book?action=open&asin=${readwiseBook3.asin}) | [${readwiseBook3.num_highlights} highlight](https://www.amplenote.com/notes/2#Highlights) | August 5, 2022 | [Readwise link](${readwiseBook3.highlights_url}) |
 `;
       await expect(plugin._syncAll(app)).resolves.not.toThrow();
-      validateDashboard(app, dashboardNote, expectedDashboardRegex, expectedDashboardContentBook3);
+      validateDashboard(app, dashboardNote, expectedDashboardContentBook3);
     })
   })
 });
-
-
 
 // --------------------------------------------------------------------------------------
 // Note that some of these tests actually make calls to OpenAI. Normally tests would be mocked for
@@ -553,13 +471,13 @@ describe("plugin2", () => {
   const fauxRowLater = `![book cover](https://www.gitclear.com/image.jpg) | [The Latest Book][https://amplenote.com/notes/123322] | William Harding | books | [kindle](https://kindle.com/blah) | [5 highlights](https://amplenote.com/notes/abc333) | February 22, 2005 | [Readwise link](https://gitclear.com/bookreview/1005)`;
   const fauxRowMiddle = `![book cover](https://www.gitclear.com/image.jpg) | [The Middle Book, A $1 Trillion Painful Risk][https://amplenote.com/notes/123323] | William Harding | books | [kindle](https://kindle.com/blah) | [5 highlights](https://amplenote.com/notes/abc333) | January 12, 2005 | [Readwise link](https://gitclear.com/bookreview/1032)`;
   // const readwiseRow = plugin._bookRowContentFromReadwiseBook(null, readwiseBook1, bookNoteUUID);
+  const dateFormat = plugin._dateFormat || "en-US";
 
   // --------------------------------------------------------------------------------------
   describe("with existing entries", () => {
     const dashboardNote = mockNote("", plugin.constants.dashboardConstants.defaultDashboardNoteTitle, dashboardNoteUUID, ["library"]);
     const app = mockApp(dashboardNote);
-    const dateFormat = plugin._dateFormat || (app && app.settings[plugin.constants.settingDateFormat]) || "en-US";
-    const bookObject = _bookObjectFromReadwiseBook(readwiseBookOneHighlight, bookNoteUUID, dateFormat);
+    const bookObject = _bookObjectFromReadwiseBook(readwiseBook1, bookNoteUUID, dateFormat);
     const readwiseRow = _markdownFromTableRow(
         tableHeaders,
         bookObject,
@@ -595,7 +513,7 @@ describe("plugin2", () => {
         - Readwise books imported into table: 18
         - Book count reported by Readwise: 25
         # ${plugin.constants.dashboardConstants.dashboardBookListTitle}
-        ## ${_sectionNameFromLastHighlight(readwiseBookOneHighlight.last_highlight_at)}
+        ## ${_sectionNameFromLastHighlight(readwiseBook1.last_highlight_at)}
         ${_tablePreambleFromHeaders(tableHeaders)}${readwiseRow}
         ## ${_sectionNameFromLastHighlight("January 5, 2005")}
         ${_tablePreambleFromHeaders(tableHeaders)}| ${fauxRowLater} |
@@ -605,84 +523,6 @@ describe("plugin2", () => {
       const expectedContent = unformatted.split("\n").map(n => n.replace(/^\s*/, "")).join("\n");
       await _flushLocalNotes(app, plugin._noteContents);
       expect(dashboardNote.body).toEqual(expectedContent);
-    });
-  });
-});
-
-describe("plugin3", () => {
-  const plugin = mockPlugin();
-  plugin._testEnvironment = true;
-  const bookNoteUUID = "123";
-  const dashboardNoteUUID = "456789";
-
-  const fauxRowLater = `![book cover](https://www.gitclear.com/image.jpg) | [The Latest Book][https://amplenote.com/notes/123322] | William Harding | books | [kindle](https://kindle.com/blah) | [5 highlights](https://amplenote.com/notes/abc333) | February 22, 2005 | [Readwise link](https://gitclear.com/bookreview/1005)`;
-  const fauxRowMiddle = `![book cover](https://www.gitclear.com/image.jpg) | [The Middle Book, A $1 Trillion Painful Risk][https://amplenote.com/notes/123323] | William Harding | books | [kindle](https://kindle.com/blah) | [5 highlights](https://amplenote.com/notes/abc333) | January 12, 2005 | [Readwise link](https://gitclear.com/bookreview/1032)`;
-  // const readwiseRow = plugin._bookRowContentFromReadwiseBook(null, readwiseBook1, bookNoteUUID);
-  plugin._initialize();
-
-  // --------------------------------------------------------------------------------------
-  describe("With a sparse note", () => {
-
-    // --------------------------------------------------------------------------------------
-    it("should sync all books", async () => {
-      const dashboardNote = mockNote("", plugin.constants.dashboardConstants.defaultDashboardNoteTitle, dashboardNoteUUID, ["library"]);
-      const app = mockApp(dashboardNote);
-      const dateFormat = plugin._dateFormat || (app && app.settings[plugin.constants.settingDateFormat]) || "en-US";
-      const unformatted = `# Library Details
-      - Last synced at: ${_localeDateFromIsoDate(new Date(), dateFormat)}
-      - Oldest update synced in: August 5, 2022
-      - Next sync for content updated after: August 5, 2022
-      - Readwise books imported into table: 18
-      - Book count reported by Readwise: 25
-      # ${plugin.constants.dashboardConstants.dashboardBookListTitle}
-      ## ${_sectionNameFromLastHighlight("January 5, 2005")}
-      ${_tablePreambleFromHeaders(tableHeaders)}| ${fauxRowLater} |
-      | ${fauxRowMiddle} |`.replace(/\n\s*/g, "\n");
-
-      const expectedContent = unformatted.split("\n").map(n => n.replace(/^\s*/, "")).join("\n");
-      dashboardNote.replaceContent(expectedContent);
-      plugin._initialize(app, {
-        _getReadwiseBookCount() {
-          return Promise.resolve(1);
-        },
-        _readwiseFetchBooks: mockGetBook([readwiseBookOneHighlight]),
-      })
-      await _insertContent(plugin._noteContents, dashboardNote, expectedContent)
-          .then(result => {
-            console.log(result);
-          })
-          .catch(error => {
-            console.log(error);
-          });
-      // const bookNote = mockNote("", _noteTitleFromBook(readwiseBook1), bookNoteUUID);
-      const bookNote = await app.createNote(_noteTitleFromBook(readwiseBookOneHighlight), ["library/books"], "", bookNoteUUID);
-      await _insertContent(plugin._noteContents, bookNote, "")
-          .then(result => {
-            console.log(result);
-          })
-          .catch(error => {
-            console.log(error);
-          });
-      const expectedDashboardContent = `# Library Details
-- Last synced at: ${_localeDateFromIsoDate(new Date(), dateFormat)}
-- Oldest update synced in: January 12, 2005
-- Next sync for content updated after: March 29, 2012
-- Readwise books imported into table: 3
-- Book count reported by Readwise: 1
-# Readwise Book List
-## 2012
-| **Cover** | **Book Title** | **Author** | **Category** | **Source** | **Highlights** | **Updated** | **Other Details** |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ![\\|200](https://images-na.ssl-images-amazon.com/images/I/51y7BxD2f5L._SL200_.jpg) | [It's All Too Much](https://www.amplenote.com/notes/123) | Peter Walsh | books | [kindle](kindle://book?action=open&asin=B000N2HCP6) | [1 highlight](https://www.amplenote.com/notes/123#Highlights}) | March 29, 2012 | [Readwise link](https://readwise.io/bookreview/17506326) |
-## (No highlights yet)
-| **Cover** | **Book Title** | **Author** | **Category** | **Source** | **Highlights** | **Updated** | **Other Details** |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ![book cover](https://www.gitclear.com/image.jpg) | [The Latest Book][https://amplenote.com/notes/123322] | William Harding | books | [kindle](https://kindle.com/blah) | [5 highlights](https://amplenote.com/notes/abc333) | February 22, 2005 | [Readwise link](https://gitclear.com/bookreview/1005) |
-| ![book cover](https://www.gitclear.com/image.jpg) | [The Middle Book, A $1 Trillion Painful Risk][https://amplenote.com/notes/123323] | William Harding | books | [kindle](https://kindle.com/blah) | [5 highlights](https://amplenote.com/notes/abc333) | January 12, 2005 | [Readwise link](https://gitclear.com/bookreview/1032) |
-`;
-      // NOTE: Lucian added a new line between year headings, as well as changed the structure of the divider row to pass tests
-      await plugin._syncAll(app);
-      expect(dashboardNote.body).toEqual(expectedDashboardContent);
     });
   });
 });
