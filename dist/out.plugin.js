@@ -145,7 +145,7 @@
     try {
       row = headers.map((header) => {
         let cellContents = "";
-        cellContents = item[header].replace(/(?<!!\[\\)\|/g, ",") || "";
+        cellContents = item[header].replace(/(?<!!\[.*\\)\|/g, ",") || "";
         cellContents = cellContents.replace(/\n/gm, " ");
         return cellContents;
       });
@@ -211,6 +211,9 @@ Analyzing row: ${row}`);
         }
         rowObj[header] = cells[i] || null;
       });
+      if (rowObj.Cover) {
+        rowObj.Cover = rowObj.Cover.replace(/!\[.+\|200]\(/mg, "![\\|200](");
+      }
       return rowObj;
     });
     return table;
@@ -1080,7 +1083,7 @@ Working concurrently while notes are being changed could lead to merge issues, s
         dashboard = _groupByValue(
           dashboard,
           (item) => {
-            return _sectionNameFromLastHighlight(item.Updates);
+            return _sectionNameFromLastHighlight(item.Updated);
           }
         );
         let readwiseBookCount = await this.readwiseModule._getReadwiseBookCount(app, this.constants.readwiseConstants);

@@ -390,6 +390,35 @@ another empty row`;
         expect(app._noteRegistry["3"].body).toContain(expectedBookNote2Content);
       });
     });
+
+    describe("with all books already synced to the dashboard", () => {
+      beforeEach(() => {
+        plugin.readwiseModule = {
+          _getReadwiseBookCount() {
+            return Promise.resolve(2);
+          },
+          _readwiseFetchBooks: mockGetBook([readwiseBook4, readwiseBook1]),
+        };
+        dashboardNote = mockNote(expectedDashboardContent, plugin.constants.dashboardConstants.defaultDashboardNoteTitle,
+            dashboardNoteUUID, ["library"]);
+        app = mockApp(dashboardNote);
+        plugin._app = app;
+      });
+
+      // ------------------------------------------------------------------------------------------
+      it("should leave the Dashboard intact on a subsequent sync", async () => {
+        await expect(plugin._syncAll(app)).resolves.not.toThrow();
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
+      });
+
+      it("should not change cover image sizes", async () => {
+        // Emulate what Amplenote does to inline images
+        dashboardNote.body = dashboardNote.body.replace(
+            /\| !\[\\\|200]/mg, "| ![fake_filename.jpg\\|200]");
+        await expect(plugin._syncAll(app)).resolves.not.toThrow();
+        validateDashboard(app, dashboardNote, expectedDashboardContent);
+      })
+    })
   });
 
   describe("with 1 book and one article reported by readwise", () => {
