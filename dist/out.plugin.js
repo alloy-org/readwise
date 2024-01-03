@@ -145,8 +145,10 @@
     try {
       row = headers.map((header) => {
         let cellContents = "";
-        cellContents = item[header].replace(/(?<!!\[.*\\)\|/g, ",") || "";
+        cellContents = item[header].replace(/(?<!!\[.*\\)\|/g, ",");
         cellContents = cellContents.replace(/\n/gm, " ");
+        if (cellContents === "")
+          cellContents = `[No ${header}]`;
         return cellContents;
       });
     } catch (err) {
@@ -736,13 +738,20 @@ ${dashboardBookListMarkdown}`;
     if (!readwiseAPIKey || readwiseAPIKey.trim() === "") {
       throw new Error("Readwise API key is empty. Please provide a valid API key.");
     }
-    const headers = new Headers({ "Authorization": `Token ${readwiseAPIKey}`, "Content-Type": "application/json" });
+    const headers = new Headers({ "Authorization": `Token ${readwiseAPIKey}`, "Content-Type": "application/json", "Origin": "https://plugins.amplenote.com", "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" });
     await _ensureRequestDelta(app, constants);
-    const proxyUrl = `https://amplenote-plugins-cors-anywhere.onrender.com/${url.toString()}`;
+    let proxyUrl;
+    proxyUrl = `https://plugins.amplenote.com/cors-proxy/${url.toString()}`;
     const tryFetch = async () => {
       const response = await fetch(proxyUrl, { method: "GET", headers });
       if (!response.ok) {
         console.error(`HTTP error. Status: ${response.status}`);
+        if (response.status == 400) {
+          proxyUrl = url.toString();
+          const response2 = await fetch(proxyUrl, { method: "GET", headers });
+          if (response2.ok)
+            return response2.json();
+        }
         return null;
       } else {
         return response.json();
