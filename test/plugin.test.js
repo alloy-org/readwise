@@ -332,19 +332,29 @@ another empty row`;
   });
 
   describe("with 2 books reported by readwise", () => {
-    let expectedDashboardContent = createDashboard("none", "none", "none",
-        2, 2, [
-          {
-            year: "2015",
-            rows: [ { id: "3", book: readwiseBook2 } ]
-          },
-          {
-            year: "2012",
-            rows: [ { id: "2", book: readwiseBook4 } ],
-          },
-        ]
-    );
-    let expectedBookNote2Content = `# Summary
+    let app, dashboardNote, expectedDashboardContent, expectedBookNote2Content;
+
+    beforeEach(() => {
+      plugin._initialize();
+      plugin.readwiseModule = {
+        _getReadwiseBookCount() {
+          return Promise.resolve(2);
+        },
+        _readwiseFetchBooks: mockGetBook([readwiseBook4, readwiseBook2]),
+      };
+      expectedDashboardContent = createDashboard("none", "none", "none",
+          2, 2, [
+            {
+              year: "2015",
+              rows: [{id: "3", book: readwiseBook2}]
+            },
+            {
+              year: "2012",
+              rows: [{id: "2", book: readwiseBook4}],
+            },
+          ]
+      );
+      expectedBookNote2Content = `# Summary
 ![Book cover](${readwiseBook2.cover_image_url})
 - **${readwiseBook2.title}**
 - Book Author: [${readwiseBook2.author}](/notes/3?tag=library/author--2)
@@ -361,16 +371,6 @@ another empty row`;
 **Highlighted at**: March 29, 2015 (#H${readwiseBook2.highlights[0].id})
 # Sync History
 `;
-    let app, dashboardNote;
-
-    beforeEach(() => {
-      plugin._initialize();
-      plugin.readwiseModule = {
-        _getReadwiseBookCount() {
-          return Promise.resolve(2);
-        },
-        _readwiseFetchBooks: mockGetBook([readwiseBook4, readwiseBook2]),
-      };
     });
 
 
@@ -419,6 +419,69 @@ another empty row`;
         validateDashboard(app, dashboardNote, expectedDashboardContent);
       })
     })
+
+    describe("with plugin setting limiting fetch to a single source", () => {
+      beforeEach(() => {
+        app = mockApp();
+        app.settings[plugin.constants.settingMaxBookCount] = 1;
+        let readwiseModule = {
+          _getReadwiseBookCount() {
+            return Promise.resolve(2);
+          },
+          _readwiseFetchBooks: mockGetBook([readwiseBook4, readwiseBook1]),
+        };
+        plugin._initialize(app, readwiseModule);
+        plugin._app = app;
+      });
+
+      describe("with empty dashboard", () => {
+        beforeEach(() => {
+          app.createNote(plugin.constants.dashboardConstants.defaultDashboardNoteTitle, ["library"],
+              "", dashboardNoteUUID);
+        });
+
+        // ------------------------------------------------------------------------------------------
+        it("should only sync one book", async () => {
+          let expectedDashboardContent = createDashboard("none", "none", "none",
+              1, 2, [
+                {
+                  year: "2012",
+                  rows: [{id: "2", book: readwiseBook4}],
+                },
+              ]
+          );
+          await expect(plugin._syncAll(app)).resolves.not.toThrow();
+          validateDashboard(app, app._noteRegistry["123456789"], expectedDashboardContent);
+          expect(app._noteRegistry["2"].body).toContain(expectedBookNoteContentExtraHL);
+        })
+      });
+
+      describe("with full dashboard", () => {
+        beforeEach(() => {
+          dashboardNote = createDashboard("none", "none", "none",
+              1, 2, [
+                {
+                  year: "2012",
+                  rows: [{"id": 2, book: readwiseBook1}]
+                }
+              ]);
+          app.createNote(plugin.constants.dashboardConstants.defaultDashboardNoteTitle, ["library"],
+              dashboardNote, dashboardNoteUUID);
+          let bookNote = mockNote("",
+              `${readwiseBook1.title} by ${readwiseBook1.author} (ID#${readwiseBook1.id})`,
+              "2", ["library/books"]
+          );
+          app._noteRegistry["2"] = bookNote;
+        });
+
+        // ------------------------------------------------------------------------------------------
+        it("should sync nothing else", async () => {
+          await expect(plugin._syncAll(app)).resolves.not.toThrow();
+          validateDashboard(app, app._noteRegistry[dashboardNoteUUID], dashboardNote);
+          expect(app._noteRegistry["2"].body).toContain(expectedBookNoteContentExtraHL);
+        });
+      });
+    });
   });
 
   describe("with 1 book and one article reported by readwise", () => {

@@ -1,9 +1,37 @@
 (() => {
+  var __create = Object.create;
   var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getProtoOf = Object.getPrototypeOf;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+    get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+  }) : x)(function(x) {
+    if (typeof require !== "undefined")
+      return require.apply(this, arguments);
+    throw Error('Dynamic require of "' + x + '" is not supported');
+  });
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
   };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+    mod
+  ));
 
   // lib/dates.js
   function _yearFromDateString(dateString) {
@@ -599,6 +627,7 @@ ${dashboardBookListMarkdown}`;
   // lib/readwise.js
   var readwise_exports = {};
   __export(readwise_exports, {
+    __readwiseMakeRequest: () => __readwiseMakeRequest,
     _ensureRequestDelta: () => _ensureRequestDelta,
     _getReadwiseBookCount: () => _getReadwiseBookCount,
     _readwiseFetchBooks: () => _readwiseFetchBooks,
@@ -732,7 +761,7 @@ ${dashboardBookListMarkdown}`;
       currentPage++;
     }
   }
-  async function _readwiseMakeRequest(app, constants, url) {
+  async function __readwiseMakeRequest(app, constants, url) {
     console.log(`_readwiseMakeRequest(app, ${url.toString()})`);
     const readwiseAPIKey = app.settings["Readwise Access Token"];
     if (!readwiseAPIKey || readwiseAPIKey.trim() === "") {
@@ -743,19 +772,6 @@ ${dashboardBookListMarkdown}`;
     let proxyUrl;
     proxyUrl = `https://plugins.amplenote.com/cors-proxy/${url.toString()}`;
     const tryFetch = async () => {
-      const response = await fetch(proxyUrl, { method: "GET", headers });
-      if (!response.ok) {
-        console.error(`HTTP error. Status: ${response.status}`);
-        if (response.status == 400) {
-          proxyUrl = url.toString();
-          const response2 = await fetch(proxyUrl, { method: "GET", headers });
-          if (response2.ok)
-            return response2.json();
-        }
-        return null;
-      } else {
-        return response.json();
-      }
     };
     try {
       let result = await tryFetch();
@@ -772,6 +788,58 @@ ${dashboardBookListMarkdown}`;
       app.alert("Error making request to Readwise", e);
       return null;
     }
+  }
+  async function _readwiseMakeRequest(app, constants, url) {
+    console.log(`_readwiseMakeRequest(app, ${url.toString()})`);
+    const readwiseAPIKey = app.settings["Readwise Access Token"];
+    if (!readwiseAPIKey || readwiseAPIKey.trim() === "") {
+      throw new Error("Readwise API key is empty. Please provide a valid API key.");
+    }
+    const headers = {
+      "Authorization": `Token ${readwiseAPIKey}`,
+      "Content-Type": "application/json",
+      "Origin": "https://plugins.amplenote.com",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    };
+    await _ensureRequestDelta(app, constants);
+    const tryBrowserFetch = async (proxyUrl) => {
+      const response = await fetch(proxyUrl, { method: "GET", headers });
+      if (!response.ok) {
+        console.error(`HTTP error. Status: ${response.status}`);
+        if (response.status === 400) {
+          proxyUrl = url.toString();
+          const response2 = await fetch(proxyUrl, { method: "GET", headers });
+          if (response2.ok)
+            return response2.json();
+        }
+        return null;
+      } else {
+        return response.json();
+      }
+    };
+    const tryNodeFetch = async (url2) => {
+      const { exec } = await import("child_process");
+      return new Promise((resolve, reject) => {
+        exec(`curl -X GET "${url2}" -H "${headersToString(headers)}"`, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`exec error: ${error}`);
+            reject(error);
+            return;
+          }
+          resolve(JSON.parse(stdout));
+        });
+      });
+    };
+    const headersToString = (headers2) => {
+      return Object.entries(headers2).map(([key, value]) => `${key}: ${value}`).join(" -H ");
+    };
+    let result;
+    if (typeof process !== "undefined" && process.versions && process.versions.node) {
+      result = await tryNodeFetch(url.toString());
+    } else {
+      result = await tryBrowserFetch(url.toString());
+    }
+    return result;
   }
   async function _ensureRequestDelta(app, constants) {
     const currentTime = /* @__PURE__ */ new Date();
@@ -959,7 +1027,8 @@ Working concurrently while notes are being changed could lead to merge issues, s
       maxHighlightLimit: 5e3,
       maxBookLimit: 500,
       settingDateFormat: "Date format (default: en-US)",
-      settingDiscardedName: 'Import discarded highlights ("true" or "false". Default: false)'
+      settingDiscardedName: 'Import discarded highlights ("true" or "false". Default: false)',
+      settingMaxBookCount: "Maximum number of books/sources to import (default: 500)"
     },
     readwiseModule: void 0,
     appOption: {
@@ -1274,6 +1343,11 @@ Working concurrently while notes are being changed could lead to merge issues, s
       this._forceReprocess = false;
       this._noteContents = {};
       this._app = app;
+      if (app && app.settings[this.constants.settingMaxBookCount]) {
+        this.constants.maxBookLimit = app.settings[this.constants.settingMaxBookCount];
+      } else {
+        this.constants.maxBookLimit = 500;
+      }
       this._useLocalNoteContents = false;
       if (this._testEnvironment === void 0)
         this._testEnvironment = false;
