@@ -124,9 +124,17 @@
   }
   function _markdownFromSections(app, sectionEntries, markdownFunction) {
     let markdown = "";
+    console.log("sectionEntries");
+    console.log(JSON.stringify(sectionEntries));
     for (let [key, value] of sectionEntries) {
       markdown += `## ${key}
 `;
+      if (!value) {
+        console.error("No entries found to convert to markdown:");
+        console.error(JSON.stringify(value));
+        console.error(JSON.stringify(sectionEntries));
+        throw new Error("Cannot convert empty object into markdown. Please contact the developer of the plugin, sending the browser console logs.");
+      }
       markdown += markdownFunction(value);
     }
     return markdown;
@@ -151,6 +159,11 @@
     return markdownLines.join("\n\n");
   }
   function _markdownFromTable(items) {
+    if (!items[0]) {
+      console.error("No headers found in the table object:");
+      console.error(JSON.stringify(items));
+      throw new Error("Cannot convert empty object into markdown. Please contact the developer of the plugin, sending the browser console logs.");
+    }
     let headers = Object.keys(items[0]);
     let markdown = "";
     markdown += _tablePreambleFromHeaders(headers);
